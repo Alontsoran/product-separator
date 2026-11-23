@@ -191,6 +191,8 @@ def separate(audio_url, job_id, clip_id=""):
         if layer.get("hits")
     ]
     notes, notes_error = hear(paths)
+    # The boxes are part of the separation. A song without them is not done.
+    print(json.dumps({"boxes": sum(len(track.get("notes") or []) for track in notes) + sum(len(layer.get("hits") or []) for layer in hits), "clip": bool(clip_id)}), flush=True)
     try:
         store_notes(clip_id, hit_tracks(hits) + notes)
     except Exception as error:

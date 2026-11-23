@@ -13,8 +13,10 @@ the job is done.
 Input for a separation:
 
 ```json
-{ "input": { "audio_url": "https://example.com/song.flac" } }
+{ "input": { "audio_url": "https://example.com/song.flac", "clip_id": "the studio clip id" } }
 ```
+
+`clip_id` is the studio clip. The worker writes one box per drum hit and one box per note to `notes/<clip_id>.json` in the same bucket. A separation without that file is not finished.
 
 Input for lyrics. The Hebrew Whisper model hears the vocal on the same card
 and returns each line with its start and end, in seconds:
