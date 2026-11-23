@@ -10,7 +10,7 @@ COPY separate_full.py handler.py ./
 # The base image already has CUDA torch. Installing the separator must not
 # replace it with a CPU build.
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" \
+    && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" "basic-pitch==0.4.0" "onnxruntime==1.20.1" \
     && python -c "import torch; print('cuda', torch.cuda.is_available())" \
     && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-ct2-20250513', local_dir='/models/whisper-he')"
 
