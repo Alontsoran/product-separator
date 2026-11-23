@@ -3,9 +3,9 @@
 Serverless stem separation for Product. The worker uses the same two models
 as the studio: BS-Roformer-SW, then MDX23C for the drum pieces.
 
-RunPod builds this Dockerfile. The weights are not in git. They are the files
-already used by the studio, attached to the `models` release, and the image
-downloads them while it is built.
+RunPod builds this Dockerfile on its own machines. The weights are not in
+git. While the image is built, RunPod downloads the public copies of
+BS-Roformer-SW and the MDX23C drum model.
 
 The endpoint stays at zero workers. A job starts a card, the card stops when
 the job is done.

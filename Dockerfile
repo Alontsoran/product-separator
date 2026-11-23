@@ -14,14 +14,13 @@ RUN pip install --no-cache-dir --upgrade pip \
     && python -c "import torch; print('cuda', torch.cuda.is_available())"
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
-RUN mkdir -p /models \
-    && curl -fL --retry 3 -o /models/BS-Roformer-SW.ckpt \
-        https://github.com/Alontsoran/product-separator/releases/download/models/BS-Roformer-SW.ckpt \
-    && curl -fL --retry 3 -o /models/BS-Roformer-SW.yaml \
-        https://github.com/Alontsoran/product-separator/releases/download/models/BS-Roformer-SW.yaml \
+COPY BS-Roformer-SW.yaml config_drumsep_mdx23c.yaml /models/
+# The old GitHub release that hosted these weights is gone. These are the
+# public copies of the same two checkpoints. RunPod downloads them while it
+# builds the image, so this Mac does not have to upload a gigabyte.
+RUN curl -fL --retry 3 -o /models/BS-Roformer-SW.ckpt \
+        https://huggingface.co/enerjazzer/BS-ROFO-SW-Fixed/resolve/main/BS-Rofo-SW-Fixed.ckpt \
     && curl -fL --retry 3 -o /models/MDX23C-DrumSep-aufr33-jarredou.ckpt \
-        https://github.com/Alontsoran/product-separator/releases/download/models/MDX23C-DrumSep-aufr33-jarredou.ckpt \
-    && curl -fL --retry 3 -o /models/config_drumsep_mdx23c.yaml \
-        https://github.com/Alontsoran/product-separator/releases/download/models/config_drumsep_mdx23c.yaml
+        https://huggingface.co/lainlives/audio-separator-models/resolve/main/MDX23C-DrumSep-aufr33-jarredou.ckpt
 
 CMD ["python", "-u", "handler.py"]
