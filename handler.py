@@ -120,11 +120,11 @@ def handler(job):
     audio_url = data.get("audio_url") or ""
     if not audio_url.startswith("https://"):
         return {"error": "audio_url must be an https address"}
-    if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_ROLE_KEY"):
-        return {"error": "the endpoint is missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"}
     task = data.get("task") or "separate"
     if task == "lyrics":
         return transcribe(audio_url)
+    if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_ROLE_KEY"):
+        return {"error": "the endpoint is missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"}
     return separate(audio_url, job.get("id") or "job")
 
 
