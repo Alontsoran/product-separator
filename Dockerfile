@@ -10,10 +10,12 @@ COPY separate_full.py handler.py ./
 # The base image already has CUDA torch. Installing the separator must not
 # replace it with a CPU build.
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir "audio-separator==0.47.0" runpod \
-    && python -c "import torch; print('cuda', torch.cuda.is_available())"
+    && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" \
+    && python -c "import torch; print('cuda', torch.cuda.is_available())" \
+    && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-turbo-ct2', local_dir='/models/whisper-he')"
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
+ENV WHISPER_MODEL=/models/whisper-he
 COPY BS-Roformer-SW.yaml config_drumsep_mdx23c.yaml /models/
 # The old GitHub release that hosted these weights is gone. These are the
 # public copies of the same two checkpoints. RunPod downloads them while it

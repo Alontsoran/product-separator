@@ -10,10 +10,17 @@ BS-Roformer-SW and the MDX23C drum model.
 The endpoint stays at zero workers. A job starts a card, the card stops when
 the job is done.
 
-Input:
+Input for a separation:
 
 ```json
 { "input": { "audio_url": "https://example.com/song.flac" } }
+```
+
+Input for lyrics. The Hebrew Whisper model hears the vocal on the same card
+and returns each line with its start and end, in seconds:
+
+```json
+{ "input": { "task": "lyrics", "audio_url": "https://example.com/vocals.flac" } }
 ```
 
 The endpoint needs `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Stems are
