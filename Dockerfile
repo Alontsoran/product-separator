@@ -12,7 +12,7 @@ COPY separate_full.py handler.py ./
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" \
     && python -c "import torch; print('cuda', torch.cuda.is_available())" \
-    && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-turbo-ct2', local_dir='/models/whisper-he')"
+    && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-ct2-20250513', local_dir='/models/whisper-he')"
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
 ENV WHISPER_MODEL=/models/whisper-he

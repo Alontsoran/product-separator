@@ -106,13 +106,15 @@ def transcribe(audio_url):
         vad_filter=False,
         condition_on_previous_text=False,
         beam_size=5,
+        temperature=0.0,
+        hallucination_silence_threshold=2.0,
     )
     lines = []
     for segment in segments:
         text = segment.text.strip()
         if text:
             lines.append({"text": text, "start": round(segment.start, 2), "end": round(segment.end, 2)})
-    return {"model": "ivrit-ai/whisper-large-v3-turbo", "lines": lines}
+    return {"model": "ivrit-ai/whisper-large-v3-ct2-20250513", "lines": lines}
 
 
 def handler(job):
