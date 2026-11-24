@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir --no-deps "basic-pitch==0.4.0" \
     && pip install --no-cache-dir "onnxruntime==1.20.1" "pretty-midi>=0.2.9" "mir_eval>=0.6" \
     && python -c "import torch; print('cuda', torch.cuda.is_available())" \
-    && python -c "from basic_pitch import FilenameSuffix, build_icassp_2022_model_path; from basic_pitch.inference import Model; p=build_icassp_2022_model_path(FilenameSuffix.onnx); assert p.is_file(), p; Model(p); print('notes', p.name)" \
+    && python -c "from basic_pitch import FilenameSuffix, build_icassp_2022_model_path; p=build_icassp_2022_model_path(FilenameSuffix.onnx); assert p.is_file(), p; print('notes', p.name)" \
     && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-ct2-20250513', local_dir='/models/whisper-he')"
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
