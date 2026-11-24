@@ -75,11 +75,11 @@ PITCHED = {
 
 def hear(stems):
     try:
-        from basic_pitch import ICASSP_2022_MODEL_PATH
+        from basic_pitch import FilenameSuffix, build_icassp_2022_model_path
         from basic_pitch.inference import Model, predict
     except Exception as error:
         return [], str(error)
-    model = Model(ICASSP_2022_MODEL_PATH)
+    model = Model(build_icassp_2022_model_path(FilenameSuffix.onnx))
     tracks = []
     for name, path in stems:
         spec = PITCHED.get(name)

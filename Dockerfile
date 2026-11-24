@@ -9,9 +9,15 @@ COPY separate_full.py handler.py ./
 
 # The base image already has CUDA torch. Installing the separator must not
 # replace it with a CPU build.
+# basic-pitch 0.4 on Linux Python 3.11 depends on TensorFlow. That install
+# failed the image, so the card kept running the build from before the notes.
+# The note model shipped in the package is ONNX. Install it without TensorFlow.
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" "basic-pitch==0.4.0" "onnxruntime==1.20.1" \
+    && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0" \
+    && pip install --no-cache-dir --no-deps "basic-pitch==0.4.0" \
+    && pip install --no-cache-dir "onnxruntime==1.20.1" "librosa>=0.10" "pretty-midi>=0.2.9" "resampy==0.4.2" "scipy>=1.4.1" scikit-learn \
     && python -c "import torch; print('cuda', torch.cuda.is_available())" \
+    && python -c "from basic_pitch import FilenameSuffix, build_icassp_2022_model_path; from basic_pitch.inference import Model; p=build_icassp_2022_model_path(FilenameSuffix.onnx); assert p.is_file(), p; Model(p); print('notes', p.name)" \
     && python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-ct2-20250513', local_dir='/models/whisper-he')"
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
