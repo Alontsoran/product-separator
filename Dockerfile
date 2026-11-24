@@ -11,8 +11,9 @@ COPY separate_full.py handler.py ./
 # replace it with a CPU build.
 # basic-pitch 0.4 on Linux Python 3.11 depends on TensorFlow, and that install
 # failed the image. The note model in the package is ONNX. Install it without
-# TensorFlow. Keep each heavy step in its own layer so a network blip does not
-# redo the whole install.
+# TensorFlow.
+# Whisper is not baked into the image. Hugging Face downloads fail on this
+# builder. The first lyrics job pulls the Hebrew model onto the card.
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir "audio-separator==0.47.0" runpod faster-whisper "av==14.2.0"
 
@@ -20,15 +21,6 @@ RUN pip install --no-cache-dir --no-deps "basic-pitch==0.4.0" \
     && pip install --no-cache-dir "onnxruntime==1.20.1" "pretty-midi>=0.2.9" "mir_eval>=0.6" \
     && python -c "import torch; print('cuda', torch.cuda.is_available())" \
     && python -c "from basic_pitch import FilenameSuffix, build_icassp_2022_model_path; p=build_icassp_2022_model_path(FilenameSuffix.onnx); assert p.is_file(), p; print('notes', p.name)"
-
-# Whisper is a multi-gigabyte download. Retry so a short network blip does not
-# fail the whole image after the packages already installed.
-RUN for i in 1 2 3 4 5; do \
-      python -c "from huggingface_hub import snapshot_download; snapshot_download('ivrit-ai/whisper-large-v3-ct2-20250513', local_dir='/models/whisper-he')" \
-      && break \
-      || { echo "whisper download attempt $i failed"; sleep 20; }; \
-    done \
-    && test -d /models/whisper-he
 
 ENV AUDIO_SEPARATOR_MODEL_DIR=/models
 ENV WHISPER_MODEL=/models/whisper-he

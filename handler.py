@@ -211,9 +211,14 @@ def separate(audio_url, job_id, clip_id=""):
 
 def lyrics_model():
     # Loaded on the first lyrics job, on the card, not on the studio machine.
+    # The Hebrew model is pulled here when the image does not already have it.
     global _lyrics_model
     if _lyrics_model is None:
+        from pathlib import Path
         from faster_whisper import WhisperModel
+        if not Path(WHISPER_DIR).is_dir() or not any(Path(WHISPER_DIR).iterdir()):
+            from huggingface_hub import snapshot_download
+            snapshot_download("ivrit-ai/whisper-large-v3-ct2-20250513", local_dir=WHISPER_DIR)
         _lyrics_model = WhisperModel(WHISPER_DIR, device="cuda", compute_type="float16")
     return _lyrics_model
 
