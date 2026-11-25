@@ -19,7 +19,16 @@ import separate_full
 MODEL_DIR = os.environ.get("AUDIO_SEPARATOR_MODEL_DIR", "/models")
 WHISPER_DIR = os.environ.get("WHISPER_MODEL", "/models/whisper-he")
 BUCKET = os.environ.get("SUPABASE_BUCKET", "product-songs")
+# The dated Hub id (…-20250513) is not a public repo. Hugging Face answers
+# 401 for it. These two are the public CTranslate2 copies of the same Hebrew
+# weights. token=False so a broken HF_TOKEN on the card cannot 401 a public
+# download.
+WHISPER_REPOS = (
+    "ivrit-ai/whisper-large-v3-ct2",
+    "ivrit-ai/whisper-large-v3-turbo-ct2",
+)
 _lyrics_model = None
+_lyrics_repo = None
 
 
 def fetch(url, dest):
@@ -209,16 +218,36 @@ def separate(audio_url, job_id, clip_id=""):
     return payload
 
 
+def whisper_ready(path):
+    folder = Path(path)
+    return folder.is_dir() and (folder / "model.bin").is_file() and (folder / "config.json").is_file()
+
+
+def pull_whisper(dest):
+    from huggingface_hub import snapshot_download
+    folder = Path(dest)
+    folder.mkdir(parents=True, exist_ok=True)
+    last = None
+    for repo in WHISPER_REPOS:
+        try:
+            snapshot_download(repo_id=repo, local_dir=str(folder), token=False)
+            if whisper_ready(folder):
+                return repo
+        except Exception as error:
+            last = error
+    raise last or RuntimeError("hebrew whisper is not on the card")
+
+
 def lyrics_model():
     # Loaded on the first lyrics job, on the card, not on the studio machine.
     # The Hebrew model is pulled here when the image does not already have it.
-    global _lyrics_model
+    global _lyrics_model, _lyrics_repo
     if _lyrics_model is None:
-        from pathlib import Path
         from faster_whisper import WhisperModel
-        if not Path(WHISPER_DIR).is_dir() or not any(Path(WHISPER_DIR).iterdir()):
-            from huggingface_hub import snapshot_download
-            snapshot_download("ivrit-ai/whisper-large-v3-ct2-20250513", local_dir=WHISPER_DIR)
+        if not whisper_ready(WHISPER_DIR):
+            _lyrics_repo = pull_whisper(WHISPER_DIR)
+        else:
+            _lyrics_repo = WHISPER_REPOS[0]
         _lyrics_model = WhisperModel(WHISPER_DIR, device="cuda", compute_type="float16")
     return _lyrics_model
 
@@ -250,7 +279,7 @@ def transcribe(audio_url):
         text = segment.text.strip()
         if text:
             lines.append({"text": text, "start": round(segment.start, 2), "end": round(segment.end, 2)})
-    return {"model": "ivrit-ai/whisper-large-v3-ct2-20250513", "lines": lines}
+    return {"model": _lyrics_repo or WHISPER_REPOS[0], "lines": lines}
 
 
 def handler(job):
@@ -260,7 +289,10 @@ def handler(job):
         return {"error": "audio_url must be an https address"}
     task = data.get("task") or "separate"
     if task == "lyrics":
-        return transcribe(audio_url)
+        try:
+            return transcribe(audio_url)
+        except Exception as error:
+            return {"error": f"hebrew whisper failed ({error.__class__.__name__})"}
     if not os.environ.get("SUPABASE_URL") or not os.environ.get("SUPABASE_SERVICE_ROLE_KEY"):
         return {"error": "the endpoint is missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"}
     return separate(audio_url, job.get("id") or "job", data.get("clip_id") or "")
